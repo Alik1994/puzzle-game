@@ -1,0 +1,60 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin: 100px auto;
+  .btn_wrapper {
+    display: flex;
+    justify-content: space-between;
+    max-width: 320px;
+    width: 100%;
+
+    .btn {
+      padding: 7px;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+  }
+  .progress_wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+
+  .game-field {
+    display: flex;
+    flex-wrap: wrap;
+    outline: gray solid 1px;
+
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      outline: gray solid 1px;
+    }
+  }
+
+  .sizes {
+    display: flex;
+
+    .size {
+      color: blue;
+      margin-left: 5px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+}
