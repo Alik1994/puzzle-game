@@ -26,12 +26,211 @@ const sizeValue = document.createElement("span");
 //ДРУГИЕ РАЗМЕРЫ ПОЛЯ
 const anotherSizes = document.createElement("div");
 
+//Параметры поля
 let dimension = 4; //размерность
+
 let count = 0; //кол-во ходов
 let startView = startArr(dimension); //стартовый набор карточек
+let mainMatrix = setMatrix(startView); //начальная матрица элементов
+
 let sizesArr = [3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
-//Отрисока элементов при загрузе
+//Настройки игрового поля
+function createField() {
+  gameField.classList.add("game-field");
+  gameField.style.marginTop = "10px";
+  gameField.style.width = btnWrap.offsetWidth + "px";
+  gameField.style.height = window
+    .getComputedStyle(btnWrap)
+    .getPropertyValue("width");
+  container.append(gameField);
+}
+
+//Стартовая последовательность плиток
+function startArr(rows) {
+  let arr = [];
+  let current = 1;
+  let end = rows * rows;
+
+  while (current <= end) {
+    arr.push(current);
+    current++;
+  }
+
+  return arr;
+}
+
+//Генерирование случайной последовательности плиток
+function generateRandom(rows) {
+  let set = new Set();
+  let end = rows * rows;
+
+  while (set.size < end) {
+    let value = Math.ceil(Math.random() * end);
+    set.add(value);
+  }
+
+  return Array.from(set);
+}
+
+//Создание матрицы
+function setMatrix(arr) {
+  let matrix = [];
+  let x = 0; //горизонталь
+  let y = 0; //вертикаль
+
+  for (let i = dimension; i > 0; i--) matrix.push([]);
+
+  for (let i = 0; i < arr.length; i++) {
+    if (x >= dimension) {
+      x = 0;
+      y++;
+    }
+
+    matrix[y].push(arr[i]);
+    x++;
+  }
+
+  return matrix;
+}
+
+//Создание плиток пазла
+function createBars(matrix) {
+  let currentMatrix = matrix;
+  gameField.innerHTML = "";
+
+  for (let y = 0; y < currentMatrix.length; y++) {
+    for (let x = 0; x < currentMatrix[y].length; x++) {
+      const bar = document.createElement("div");
+
+      if (currentMatrix[y][x] === dimension * dimension) {
+        //задать конечному элементу цвет шрифта = цвету поля
+        //скрываем его
+        bar.style.color = "#0abab5";
+        bar.style.backgroundColor = "#0abab5";
+      }
+
+      bar.classList.add("bar");
+      bar.style.width = gameField.offsetWidth / dimension + "px";
+      bar.style.height = gameField.offsetWidth / dimension + "px";
+
+      bar.textContent = `${currentMatrix[y][x]}`;
+
+      gameField.append(bar);
+    }
+  }
+}
+
+//Создание иных размеров
+function createSizes(arr) {
+  let sizes = arr;
+
+  for (let i = 0; i < sizes.length; i++) {
+    const size = document.createElement("div");
+
+    size.classList.add("size");
+    size.dataset.sizeValue = `${sizes[i]}`;
+    size.textContent = `${sizes[i]}х${sizes[i]}`;
+
+    anotherSizes.append(size);
+  }
+}
+
+//Переключение между иными размерами
+anotherSizes.addEventListener("click", (event) => {
+  let target = event.target;
+
+  if (target.className === "size") {
+    dimension = Number(target.dataset.sizeValue);
+    startView = startArr(dimension);
+    mainMatrix = setMatrix(startView);
+    sizeValue.textContent = `${dimension} х ${dimension}`;
+    createBars(mainMatrix);
+  }
+});
+
+//Функция-таймер
+let hours = 0;
+let minutes = 0;
+let seconds = 0;
+
+function timer() {
+  seconds++;
+
+  if (seconds === 60) {
+    minutes++;
+    seconds = 0;
+  }
+
+  if (minutes === 60) {
+    hours++;
+    minutes = 0;
+  }
+
+  timeValue.textContent = `${hours < 10 ? "0" + hours : hours} : ${
+    minutes < 10 ? "0" + minutes : minutes
+  } : ${seconds < 10 ? "0" + seconds : seconds}`;
+}
+
+//Получение координаты плитки
+function getCoordinateByNum(number, matrix) {
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      if (matrix[y][x] === number) {
+        return { x, y };
+      }
+    }
+  }
+
+  return null;
+}
+
+//Старт игры - нажатие на Start
+function startHandler() {
+  //1. Перемешать карточки
+  let randomArr = generateRandom(dimension);
+  mainMatrix = setMatrix(randomArr);
+
+  createBars(mainMatrix);
+
+  //2. Запуск таймера
+  setInterval(timer, 1000); //TimerId = 1
+
+  //3. Сделать кнопку Stop активной
+  btnStop.style.backgroundColor = "#ff8c69";
+
+  //4. Сделать кнопку Start неактивной
+  btnStart.removeEventListener("click", startHandler);
+
+  //5. Навесить событие на игровое поле
+  gameField.addEventListener("click", (event) => {
+    const barNode = event.target.closest(".bar");
+
+    if (!barNode) return;
+
+    //5.1 Получить номер пустой плитки
+    const emptyBarNum = dimension * dimension;
+
+    //5.2 Получить номер активной плитки
+    const activeBarNum = Number(barNode.textContent);
+
+    //5.3 Получить координаты (x,y) в матрице для пустой и активной плитки
+    const emptyBarCoords = getCoordinateByNum(emptyBarNum, mainMatrix);
+    console.log(emptyBarCoords);
+    const activeBarCoords = getCoordinateByNum(activeBarNum, mainMatrix);
+    console.log(activeBarCoords);
+  });
+}
+
+//Остановка игры - нажатие на Stop
+function stopHandler() {
+  clearInterval(1); //остановка таймера
+}
+
+btnStart.addEventListener("click", startHandler);
+btnStop.addEventListener("click", stopHandler);
+
+//Отрисовка элементов при загрузе
 function createElements() {
   container.classList.add("container");
   btnWrap.classList.add("btn_wrapper");
@@ -80,7 +279,7 @@ function createElements() {
   timeEl.append(timeValue);
 
   createField();
-  createBars(startView);
+  createBars(mainMatrix);
 
   container.append(currentSize);
   currentSize.append(sizeValue);
@@ -90,137 +289,6 @@ function createElements() {
   createSizes(sizesArr);
 }
 
-//Настройки игрового поля
-function createField() {
-  gameField.classList.add("game-field");
-  gameField.style.marginTop = "10px";
-  gameField.style.width = btnWrap.offsetWidth + "px";
-  gameField.style.height = window
-    .getComputedStyle(btnWrap)
-    .getPropertyValue("width");
-  container.append(gameField);
-}
-
-//Стартовая последовательность плиток
-function startArr(rows) {
-  let arr = [];
-  let current = 1;
-  let end = rows * rows;
-
-  while (current < end) {
-    arr.push(current);
-    current++;
-  }
-
-  return arr;
-}
-
-//Генерирование случайной последовательности плиток
-function generateRandom(rows) {
-  let set = new Set();
-  let end = rows * rows - 1;
-
-  while (set.size < end) {
-    let value = Math.ceil(Math.random() * end);
-    set.add(value);
-  }
-
-  return Array.from(set);
-}
-
-//Создание плиток пазла
-function createBars(arr) {
-  let array = arr;
-  gameField.innerHTML = "";
-
-  for (let i = 0; i < array.length; i++) {
-    const bar = document.createElement("div");
-
-    bar.classList.add("bar");
-    bar.style.width = gameField.offsetWidth / dimension + "px";
-    bar.style.height = gameField.offsetWidth / dimension + "px";
-
-    bar.textContent = `${array[i]}`;
-
-    gameField.append(bar);
-  }
-}
-
-//Создание иных размеров
-function createSizes(arr) {
-  let sizes = arr;
-
-  for (let i = 0; i < sizes.length; i++) {
-    const size = document.createElement("div");
-
-    size.classList.add("size");
-    size.dataset.sizeValue = `${sizes[i]}`;
-    size.textContent = `${sizes[i]}х${sizes[i]}`;
-
-    anotherSizes.append(size);
-  }
-}
-
-//Переключение между иными размерами
-anotherSizes.addEventListener("click", (event) => {
-  let target = event.target;
-
-  if (target.className === "size") {
-    dimension = Number(target.dataset.sizeValue);
-    startView = startArr(dimension);
-    sizeValue.textContent = `${dimension} х ${dimension}`;
-    createBars(startView);
-  }
-});
-
-//Функция-таймер
-let hours = 0;
-let minutes = 0;
-let seconds = 0;
-
-function timer() {
-  seconds++;
-
-  if (seconds === 60) {
-    minutes++;
-    seconds = 0;
-  }
-
-  if (minutes === 60) {
-    hours++;
-    minutes = 0;
-  }
-
-  timeValue.textContent = `${hours < 10 ? "0" + hours : hours} : ${
-    minutes < 10 ? "0" + minutes : minutes
-  } : ${seconds < 10 ? "0" + seconds : seconds}`;
-}
-
-//Старт игры - нажатие на Start
-function startHandler() {
-  //1. Перемешать карточки
-  let randomArr = generateRandom(dimension);
-  createBars(randomArr);
-
-  //2. Запуск таймера
-  setInterval(timer, 1000); //TimerId = 1
-
-  //3. Сделать кнопку Stop активной
-  btnStop.style.backgroundColor = "#ff8c69";
-
-  //4. Удалить обработчик с кнопки Start
-  btnStart.removeEventListener("click", startHandler);
-
-  //5. Навесить Drag'n'Drop на игровое поле
-}
-
-//Остановка игры - нажатие на Stop
-function stopHandler() {
-  clearInterval(1); //остановка таймера
-}
-
-btnStart.addEventListener("click", startHandler);
-btnStop.addEventListener("click", stopHandler);
 //Инициатор
 function init() {
   createElements();

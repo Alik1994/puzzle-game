@@ -35,7 +35,6 @@
 .container .game-field {
   display: flex;
   flex-wrap: wrap;
-  outline: gray solid 1px;
 }
 .container .game-field .bar {
   display: flex;
@@ -43,6 +42,8 @@
   justify-content: center;
   font-size: 14px;
   outline: gray solid 1px;
+  background-color: #fff;
+  cursor: pointer;
 }
 .container .sizes {
   display: flex;
