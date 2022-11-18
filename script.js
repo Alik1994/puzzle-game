@@ -185,6 +185,17 @@ function getCoordinateByNum(number, matrix) {
   return null;
 }
 
+//Проверка на валидность - возможность замены плиток
+function isValidForSwap(coords1, coords2) {
+  /*Координаты валидны тогда, когда разница в координатах
+  либо по X, либо по Y не превышает 1*/
+
+  const diffX = Math.abs(coords1.x - coords2.x); //разница в координатах по X
+  const diffY = Math.abs(coords1.y - coords2.y); //разница в координатах по Y
+
+  return (diffX === 1 || diffY === 1) && (diffX === 0 || diffY === 0);
+}
+
 //Старт игры - нажатие на Start
 function startHandler() {
   //1. Перемешать карточки
@@ -216,9 +227,14 @@ function startHandler() {
 
     //5.3 Получить координаты (x,y) в матрице для пустой и активной плитки
     const emptyBarCoords = getCoordinateByNum(emptyBarNum, mainMatrix);
-    console.log(emptyBarCoords);
     const activeBarCoords = getCoordinateByNum(activeBarNum, mainMatrix);
-    console.log(activeBarCoords);
+
+    //5.4 Проверка валидности координат
+    const isValid = isValidForSwap(emptyBarCoords, activeBarCoords);
+
+    console.log(isValid);
+    if (isValid) {
+    }
   });
 }
 
