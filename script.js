@@ -33,7 +33,7 @@ let count = 0; //кол-во ходов
 let startView = startArr(dimension); //стартовый набор карточек
 let mainMatrix = setMatrix(startView); //начальная матрица элементов
 
-let sizesArr = [3, 4, 5, 6, 7, 8]; //доступные размеры полей
+let sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
 //Настройки игрового поля
 function createField() {
@@ -137,7 +137,7 @@ function createSizes(arr) {
 }
 
 //Переключение между иными размерами
-anotherSizes.addEventListener("click", (event) => {
+function sizesHandler(event) {
   let target = event.target;
 
   if (target.className === "size") {
@@ -147,7 +147,7 @@ anotherSizes.addEventListener("click", (event) => {
     sizeValue.textContent = `${dimension} х ${dimension}`;
     createBars(mainMatrix);
   }
-});
+}
 
 //Функция-таймер
 let hours = 0;
@@ -195,45 +195,68 @@ function isValidForSwap(coords1, coords2) {
 
   return (diffX === 1 || diffY === 1) && (diffX === 0 || diffY === 0);
 }
+//Функция замены при валидности
+function swapBars(coords1, coords2, matrix) {
+  const coord1Num = matrix[coords1.y][coords1.x];
+  matrix[coords1.y][coords1.x] = matrix[coords2.y][coords2.x];
+  matrix[coords2.y][coords2.x] = coord1Num;
+  createBars(matrix);
+}
+
+//Проверка победы
+function isWin() {
+  let startMatrix = setMatrix(startView);
+  let newMatrix = mainMatrix;
+
+  if (startMatrix === newMatrix) {
+    console.log("hi");
+  }
+}
 
 //Старт игры - нажатие на Start
 function startHandler() {
-  //1. Перемешать карточки
+  //1. Запретить переключение размеров
+  anotherSizes.removeEventListener("click", sizesHandler);
+
+  //2. Перемешать карточки
   let randomArr = generateRandom(dimension);
   mainMatrix = setMatrix(randomArr);
 
   createBars(mainMatrix);
 
-  //2. Запуск таймера
+  //3. Запуск таймера
   setInterval(timer, 1000); //TimerId = 1
 
-  //3. Сделать кнопку Stop активной
+  //4. Сделать кнопку Stop активной
   btnStop.style.backgroundColor = "#ff8c69";
 
-  //4. Сделать кнопку Start неактивной
+  //5. Сделать кнопку Start неактивной
   btnStart.removeEventListener("click", startHandler);
 
-  //5. Навесить событие на игровое поле
+  //6. Навесить событие на игровое поле
   gameField.addEventListener("click", (event) => {
     const barNode = event.target.closest(".bar");
 
     if (!barNode) return;
 
-    //5.1 Получить номер пустой плитки
+    //6.1 Получить номер пустой плитки
     const emptyBarNum = dimension * dimension;
 
-    //5.2 Получить номер активной плитки
+    //6.2 Получить номер активной плитки
     const activeBarNum = Number(barNode.textContent);
 
-    //5.3 Получить координаты (x,y) в матрице для пустой и активной плитки
+    //6.3 Получить координаты (x,y) в матрице для пустой и активной плитки
     const emptyBarCoords = getCoordinateByNum(emptyBarNum, mainMatrix);
     const activeBarCoords = getCoordinateByNum(activeBarNum, mainMatrix);
 
-    //5.4 Проверка валидности координат
+    //6.4 Проверка валидности координат
     const isValid = isValidForSwap(emptyBarCoords, activeBarCoords);
 
-    console.log(isValid);
     if (isValid) {
+      swapBars(emptyBarCoords, activeBarCoords, mainMatrix);
+      count++;
+      numberOfMoves.textContent = `${count}`;
+      isWin();
     }
   });
 }
@@ -242,7 +265,7 @@ function startHandler() {
 function stopHandler() {
   clearInterval(1); //остановка таймера
 }
-
+anotherSizes.addEventListener("click", sizesHandler);
 btnStart.addEventListener("click", startHandler);
 btnStop.addEventListener("click", stopHandler);
 
@@ -263,7 +286,7 @@ function createElements() {
   btnResults.textContent = "Results";
 
   movesEl.textContent = "Moves: ";
-  numberOfMoves.textContent = `${count}`;
+  numberOfMoves.textContent = "0";
   timeEl.textContent = "Time: ";
   timeValue.textContent = "00 : 00 : 00";
 
