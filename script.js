@@ -1,5 +1,8 @@
 const container = document.createElement("DIV");
 
+//АУДИО
+const audioEl = document.createElement("audio");
+
 //КНОПКИ
 const btnWrap = document.createElement("DIV");
 const btnStart = document.createElement("button");
@@ -24,6 +27,13 @@ const nameText = document.createElement("p");
 const modalForm = document.createElement("input");
 const modalBtn = document.createElement("button");
 let userName = "";
+
+//TODO - delete later
+const showModal = document.createElement("button");
+showModal.textContent = "show modal";
+showModal.addEventListener("click", () => {
+  makeModal();
+});
 
 //ИГРОВОЕ ПОЛЕ
 const gameField = document.createElement("div");
@@ -272,6 +282,15 @@ function isWin() {
   //Делаем из них строки и сравниваем
   let startArr = [].concat(startView);
   let newArr = mainMatrix.flat(Infinity);
+
+  return startArr === newArr;
+}
+
+//Воспроизведение аудио
+function playSound(sound) {
+  let audio = new Audio();
+  audio.src = `src/${sound}.mp3`;
+  audio.autoplay = true;
 }
 
 //Старт игры - нажатие на Start
@@ -317,10 +336,23 @@ function startHandler() {
     const isValid = isValidForSwap(emptyBarCoords, activeBarCoords);
 
     if (isValid) {
+      //Меняем плитки местами
       swapBars(emptyBarCoords, activeBarCoords, mainMatrix);
+      //Увеличиваем кол-во ходов
       count++;
       numberOfMoves.textContent = `${count}`;
-      isWin();
+      //Воспроизводим звук
+      playSound("click");
+
+      //Проверка на победителя
+      const winner = isWin();
+
+      if (winner) {
+        //Останавливаем таймер
+        clearInterval(1);
+        //Показываем модалку
+        makeModal();
+      }
     }
   });
 }
@@ -366,6 +398,7 @@ function createElements() {
   anotherSizes.style.marginTop = "10px";
 
   document.body.prepend(container);
+  document.body.prepend(audioEl);
 
   container.append(btnWrap);
   btnWrap.append(btnStart);
@@ -387,6 +420,9 @@ function createElements() {
   container.append(anotherSizes);
 
   createSizes(sizesArr);
+
+  //TODO - delete
+  document.body.prepend(showModal);
 }
 
 //Отрисовка модального окна
@@ -394,7 +430,11 @@ function makeModal() {
   //Модальное окно
 
   modalImg.setAttribute("src", "src/win_img.png");
-  winText.textContent = "You win!";
+  winText.textContent = `Hooray! You solved the puzzle in ${
+    hours < 10 ? "0" + hours : hours
+  } : ${minutes < 10 ? "0" + minutes : minutes} : ${
+    seconds < 10 ? "0" + seconds : seconds
+  } and ${count} moves!`;
   nameText.textContent = "Please, enter your name!";
   modalBtn.textContent = "Ok";
 
@@ -413,6 +453,8 @@ function makeModal() {
 
   document.body.prepend(overlay);
   document.body.prepend(modalWindow);
+
+  playSound("win");
 }
 
 //Инициатор
