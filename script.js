@@ -4,7 +4,6 @@ const container = document.createElement("DIV");
 const btnWrap = document.createElement("DIV");
 const btnStart = document.createElement("button");
 const btnStop = document.createElement("button");
-const btnSave = document.createElement("button");
 const btnResults = document.createElement("button");
 
 //ХОДЫ И ВРЕМЯ
@@ -331,14 +330,12 @@ function createElements() {
   btnWrap.classList.add("btn_wrapper");
   btnStart.classList.add("btn");
   btnStop.classList.add("btn");
-  btnSave.classList.add("btn");
   btnResults.classList.add("btn");
   progress.classList.add("progress_wrapper");
   anotherSizes.classList.add("sizes");
 
   btnStart.textContent = "Shuffle and start";
   btnStop.textContent = "Stop";
-  btnSave.textContent = "Save";
   btnResults.textContent = "Results";
 
   movesEl.textContent = "Moves: ";
@@ -351,7 +348,6 @@ function createElements() {
 
   btnStart.style.backgroundColor = "#0abab5";
   btnStop.style.backgroundColor = "gray";
-  btnSave.style.backgroundColor = "#0abab5";
   btnResults.style.backgroundColor = "#0abab5";
 
   timeEl.style.marginLeft = "15px";
@@ -364,7 +360,6 @@ function createElements() {
   container.append(btnWrap);
   btnWrap.append(btnStart);
   btnWrap.append(btnStop);
-  btnWrap.append(btnSave);
   btnWrap.append(btnResults);
 
   container.append(progress);
