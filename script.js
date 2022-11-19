@@ -33,7 +33,7 @@ let count = 0; //кол-во ходов
 let startView = startArr(dimension); //стартовый набор карточек
 let mainMatrix = setMatrix(startView); //начальная матрица элементов
 
-let sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
+let sizesArr = [3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
 //Настройки игрового поля
 function createField() {
@@ -92,6 +92,59 @@ function setMatrix(arr) {
   }
 
   return matrix;
+}
+
+//Проверка расклада на решаемость
+
+function isSolveable(matrix) {
+  //1. Делаем из матрицы массив
+  const arrFromMtrx = mainMatrix.flat(Infinity);
+
+  //2. Пуста клетка
+  const emptyValue = dimension ** 2;
+
+  //2. Точка отсчета
+  let startIndx = 0;
+
+  //3. Если точка отсчета равна пустой клетке, то изменить
+  if (arrFromMtrx[startIndx] === emptyValue) {
+    startIndx++;
+  }
+
+  //4. Поиск пар
+  const pairsArr = [];
+  let pairs = 0;
+
+  while (startIndx < arrFromMtrx.length - 1) {
+    pairs = findPairs(startIndx, arrFromMtrx);
+    startIndx++;
+    pairsArr.push(pairs);
+  }
+
+  //5. Ищем сумму пар
+  const sumOfPairs = pairsArr.reduce((sum, item) => sum + item, 0);
+
+  //6. Ищем номер ряда пустой клетки в матрице
+  const emptyCoords = getCoordinateByNum(emptyValue, mainMatrix);
+  const rowNum = emptyCoords.y + 1;
+
+  //7. Проверка на валидность
+
+  return (sumOfPairs + rowNum) % 2 === 0;
+}
+
+//Поиск пар, где большее значение стоит перед меньшим
+function findPairs(start, arr) {
+  let numOfPairs = 0;
+
+  for (let i = start + 1; i < arr.length; i++) {
+    if (arr[i] === dimension ** 2) continue;
+
+    if (arr[i] < arr[start]) {
+      numOfPairs++;
+    }
+  }
+  return numOfPairs;
 }
 
 //Создание плиток пазла
@@ -195,6 +248,7 @@ function isValidForSwap(coords1, coords2) {
 
   return (diffX === 1 || diffY === 1) && (diffX === 0 || diffY === 0);
 }
+
 //Функция замены при валидности
 function swapBars(coords1, coords2, matrix) {
   const coord1Num = matrix[coords1.y][coords1.x];
@@ -205,12 +259,10 @@ function swapBars(coords1, coords2, matrix) {
 
 //Проверка победы
 function isWin() {
-  let startMatrix = setMatrix(startView);
-  let newMatrix = mainMatrix;
-
-  if (startMatrix === newMatrix) {
-    console.log("hi");
-  }
+  //Идентичные массивы НЕ РАВНЫ друг другу
+  //Делаем из них строки и сравниваем
+  let startArr = [].concat(startView);
+  let newArr = mainMatrix.flat(Infinity);
 }
 
 //Старт игры - нажатие на Start
@@ -218,9 +270,12 @@ function startHandler() {
   //1. Запретить переключение размеров
   anotherSizes.removeEventListener("click", sizesHandler);
 
-  //2. Перемешать карточки
-  let randomArr = generateRandom(dimension);
-  mainMatrix = setMatrix(randomArr);
+  //2. Проверка на решаемость и отрисовка
+  mainMatrix = setMatrix(generateRandom(dimension));
+
+  while (isSolveable(mainMatrix) !== true) {
+    mainMatrix = setMatrix(generateRandom(dimension));
+  }
 
   createBars(mainMatrix);
 
@@ -265,6 +320,7 @@ function startHandler() {
 function stopHandler() {
   clearInterval(1); //остановка таймера
 }
+
 anotherSizes.addEventListener("click", sizesHandler);
 btnStart.addEventListener("click", startHandler);
 btnStop.addEventListener("click", stopHandler);
