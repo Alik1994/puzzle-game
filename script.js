@@ -15,6 +15,16 @@ const numberOfMoves = document.createElement("span");
 const timeEl = document.createElement("div");
 const timeValue = document.createElement("span");
 
+//МОДАЛЬНОЕ ОКНО (ПОБЕДА)
+const overlay = document.createElement("div");
+const modalWindow = document.createElement("div");
+const modalImg = document.createElement("img");
+const winText = document.createElement("p");
+const nameText = document.createElement("p");
+const modalForm = document.createElement("input");
+const modalBtn = document.createElement("button");
+let userName = "";
+
 //ИГРОВОЕ ПОЛЕ
 const gameField = document.createElement("div");
 
@@ -377,6 +387,32 @@ function createElements() {
   container.append(anotherSizes);
 
   createSizes(sizesArr);
+}
+
+//Отрисовка модального окна
+function makeModal() {
+  //Модальное окно
+
+  modalImg.setAttribute("src", "src/win_img.png");
+  winText.textContent = "You win!";
+  nameText.textContent = "Please, enter your name!";
+  modalBtn.textContent = "Ok";
+
+  overlay.classList.add("overlay");
+  modalWindow.classList.add("modal");
+  winText.classList.add("modal_win");
+  nameText.classList.add("modal_user");
+  modalForm.classList.add("modal_form");
+  modalBtn.classList.add("modal_btn");
+
+  modalWindow.append(modalImg);
+  modalWindow.append(winText);
+  modalWindow.append(nameText);
+  modalWindow.append(modalForm);
+  modalWindow.append(modalBtn);
+
+  document.body.prepend(overlay);
+  document.body.prepend(modalWindow);
 }
 
 //Инициатор
