@@ -23,7 +23,6 @@ const winText = document.createElement("p");
 const nameText = document.createElement("p");
 const modalForm = document.createElement("input");
 const modalBtn = document.createElement("button");
-let userName = "";
 
 //TODO - delete later
 const showModal = document.createElement("button");
@@ -43,13 +42,11 @@ const sizeValue = document.createElement("span");
 const anotherSizes = document.createElement("div");
 
 //Параметры поля
-let dimension = 4; //размерность
-
-let count = 0; //кол-во ходов
-let startView = startArr(dimension); //стартовый набор карточек
-let mainMatrix = setMatrix(startView); //начальная матрица элементов
-
-let sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
+let dimension; //размерность
+let count; //кол-во ходов
+let startView; //стартовый набор карточек
+let mainMatrix;
+let sizesArr; //доступные размеры полей
 
 //Настройки игрового поля
 function createField() {
@@ -111,7 +108,6 @@ function setMatrix(arr) {
 }
 
 //Проверка расклада на решаемость
-
 function isSolveable(matrix) {
   //1. Делаем из матрицы массив
   const arrFromMtrx = mainMatrix.flat(Infinity);
@@ -202,6 +198,7 @@ function createBars(matrix) {
 //Создание иных размеров
 function createSizes(arr) {
   let sizes = arr;
+  anotherSizes.innerHTML = "";
 
   for (let i = 0; i < sizes.length; i++) {
     const size = document.createElement("div");
@@ -227,7 +224,37 @@ function sizesHandler(event) {
   }
 }
 
+//------START-------
+
+//Старт игры - нажатие на Start
+function startHandler() {
+  //1. Запретить переключение размеров
+  anotherSizes.removeEventListener("click", sizesHandler);
+
+  //2. Проверка на решаемость и отрисовка
+  mainMatrix = setMatrix(generateRandom(dimension));
+
+  while (isSolveable(mainMatrix) !== true) {
+    mainMatrix = setMatrix(generateRandom(dimension));
+  }
+
+  createBars(mainMatrix);
+
+  //3. Запуск таймера
+  timerId = setInterval(timer, 1000); //TimerId
+
+  //4. Сделать кнопку Stop активной
+  btnReset.style.backgroundColor = "#ff8c69";
+
+  //5. Сделать кнопку Start неактивной
+  btnStart.removeEventListener("click", startHandler);
+
+  //6. Навесить событие на игровое поле
+  gameField.addEventListener("click", gameHandler);
+}
+
 //Функция-таймер
+let timerId;
 let hours = 0;
 let minutes = 0;
 let seconds = 0;
@@ -282,6 +309,55 @@ function swapBars(coords1, coords2, matrix) {
   createBars(matrix);
 }
 
+//Воспроизведение аудио
+function playSound(sound) {
+  let audio = new Audio();
+  audio.src = `src/${sound}.mp3`;
+  audio.autoplay = true;
+}
+
+//Функция для обработчика игрового поля
+function gameHandler(event) {
+  const barNode = event.target.closest(".bar");
+
+  if (!barNode) return;
+
+  //1. Получить номер пустой плитки
+  const emptyBarNum = dimension * dimension;
+
+  //2. Получить номер активной плитки
+  const activeBarNum = Number(barNode.textContent);
+
+  //3. Получить координаты (x,y) в матрице для пустой и активной плитки
+  const emptyBarCoords = getCoordinateByNum(emptyBarNum, mainMatrix);
+  const activeBarCoords = getCoordinateByNum(activeBarNum, mainMatrix);
+
+  //4. Проверка валидности координат
+  const isValid = isValidForSwap(emptyBarCoords, activeBarCoords);
+
+  if (isValid) {
+    //Меняем плитки местами
+    swapBars(emptyBarCoords, activeBarCoords, mainMatrix);
+    //Увеличиваем кол-во ходов
+    count++;
+    numberOfMoves.textContent = `${count}`;
+    //Воспроизводим звук
+    playSound("click");
+
+    //Проверка на победителя
+    const winner = isWin();
+
+    if (winner) {
+      setTimeout(function () {
+        //Останавливаем таймер
+        clearInterval(timerId);
+        //Показываем модалку
+        makeModal();
+      }, 1000);
+    }
+  }
+}
+
 //Проверка победы
 function isWin() {
   //Идентичные массивы НЕ РАВНЫ друг другу
@@ -292,150 +368,12 @@ function isWin() {
   return startArr.join("") === newArr.join("");
 }
 
-//Воспроизведение аудио
-function playSound(sound) {
-  let audio = new Audio();
-  audio.src = `src/${sound}.mp3`;
-  audio.autoplay = true;
-}
+//Модальное окно
+let userName = [];
 
-//Старт игры - нажатие на Start
-function startHandler() {
-  //1. Запретить переключение размеров
-  anotherSizes.removeEventListener("click", sizesHandler);
-
-  //2. Проверка на решаемость и отрисовка
-  mainMatrix = setMatrix(generateRandom(dimension));
-
-  while (isSolveable(mainMatrix) !== true) {
-    mainMatrix = setMatrix(generateRandom(dimension));
-  }
-
-  createBars(mainMatrix);
-
-  //3. Запуск таймера
-  setInterval(timer, 1000); //TimerId = 1
-
-  //4. Сделать кнопку Stop активной
-  btnReset.style.backgroundColor = "#ff8c69";
-
-  //5. Сделать кнопку Start неактивной
-  btnStart.removeEventListener("click", startHandler);
-
-  //6. Навесить событие на игровое поле
-  gameField.addEventListener("click", (event) => {
-    const barNode = event.target.closest(".bar");
-
-    if (!barNode) return;
-
-    //6.1 Получить номер пустой плитки
-    const emptyBarNum = dimension * dimension;
-
-    //6.2 Получить номер активной плитки
-    const activeBarNum = Number(barNode.textContent);
-
-    //6.3 Получить координаты (x,y) в матрице для пустой и активной плитки
-    const emptyBarCoords = getCoordinateByNum(emptyBarNum, mainMatrix);
-    const activeBarCoords = getCoordinateByNum(activeBarNum, mainMatrix);
-
-    //6.4 Проверка валидности координат
-    const isValid = isValidForSwap(emptyBarCoords, activeBarCoords);
-
-    if (isValid) {
-      //Меняем плитки местами
-      swapBars(emptyBarCoords, activeBarCoords, mainMatrix);
-      //Увеличиваем кол-во ходов
-      count++;
-      numberOfMoves.textContent = `${count}`;
-      //Воспроизводим звук
-      playSound("click");
-
-      //Проверка на победителя
-      const winner = isWin();
-
-      if (winner) {
-        setTimeout(function () {
-          //Останавливаем таймер
-          clearInterval(1);
-          //Показываем модалку
-          makeModal();
-        }, 1000);
-      }
-    }
-  });
-}
-
-//Остановка игры - нажатие на Stop
-function resetHandler() {
-  clearInterval(1); //остановка таймера
-}
-
-anotherSizes.addEventListener("click", sizesHandler);
-btnStart.addEventListener("click", startHandler);
-btnReset.addEventListener("click", resetHandler);
-
-//Отрисовка элементов при загрузе
-function createElements() {
-  container.classList.add("container");
-  btnWrap.classList.add("btn_wrapper");
-  btnStart.classList.add("btn");
-  btnReset.classList.add("btn");
-  btnResults.classList.add("btn");
-  progress.classList.add("progress_wrapper");
-  anotherSizes.classList.add("sizes");
-
-  btnStart.textContent = "Shuffle and start";
-  btnReset.textContent = "Reset";
-  btnResults.textContent = "Results";
-
-  movesEl.textContent = "Moves: ";
-  numberOfMoves.textContent = "0";
-  timeEl.textContent = "Time: ";
-  timeValue.textContent = "00 : 00 : 00";
-
-  currentSize.textContent = "Frame size: ";
-  sizeValue.textContent = `${dimension} х ${dimension}`;
-
-  btnStart.style.backgroundColor = "#0abab5";
-  btnReset.style.backgroundColor = "gray";
-  btnResults.style.backgroundColor = "#0abab5";
-
-  timeEl.style.marginLeft = "15px";
-
-  currentSize.style.marginTop = "10px";
-  anotherSizes.style.marginTop = "10px";
-
-  document.body.prepend(container);
-
-  container.append(btnWrap);
-  btnWrap.append(btnStart);
-  btnWrap.append(btnReset);
-  btnWrap.append(btnResults);
-
-  container.append(progress);
-  progress.append(movesEl);
-  movesEl.append(numberOfMoves);
-  progress.append(timeEl);
-  timeEl.append(timeValue);
-
-  createField();
-  createBars(mainMatrix);
-
-  container.append(currentSize);
-  currentSize.append(sizeValue);
-
-  container.append(anotherSizes);
-
-  createSizes(sizesArr);
-
-  //TODO - delete
-  document.body.prepend(showModal);
-}
-
-//Отрисовка модального окна
 function makeModal() {
   //1. Отрисовка элементов модального окна
-
+  userName = []; //имя игровка
   modalImg.setAttribute("src", "src/win_img.png");
   winText.textContent = `Hooray! You solved the puzzle in ${
     hours < 10 ? "0" + hours : hours
@@ -443,6 +381,7 @@ function makeModal() {
     seconds < 10 ? "0" + seconds : seconds
   } and ${count} moves!`;
   nameText.textContent = "Please, enter your name!";
+  modalForm.value = ""; //сброс предыдущего значения
   modalBtn.textContent = "Ok";
 
   winText.classList.add("modal_win");
@@ -459,23 +398,172 @@ function makeModal() {
   document.body.prepend(overlay);
   document.body.prepend(modalWindow);
 
+  overlay.classList.remove("hidden");
+  modalWindow.classList.remove("hidden");
+
   overlay.classList.add("overlay");
   modalWindow.classList.add("modal");
 
   //2. Проигрыш фанфар
   playSound("win");
 
-  //3. Отлеживание событий
+  //3. Обработчик на поле ввода.
+  //Ограничиваем на 7 знаков
+  //Без цифр
+  modalForm.addEventListener("input", () => {
+    let value = modalForm.value;
+    const regexp = /[a-z]/i;
 
+    //3.1 Проверяем, чтобы вводились только буквы
+    for (let i = 0; i < value.length; i++) {
+      if (!regexp.test(value[i])) {
+        //Окрасить поле в красный
+        modalForm.style.borderColor = "red";
+        //Заменить енправильный символ на пустую строку
+        value = value.replace(value[i], "");
+      } else {
+        modalForm.style.borderColor = "#0abab5";
+      }
+    }
+
+    //3.2 Ограничиваем кол-во символов
+    if (value.length > 7) {
+      value = value.slice(0, 7);
+    }
+
+    //3.3 Показываем итог
+    modalForm.value = value;
+  });
+
+  //4. Отслеживаем кнопку Enter на поле ввода
+  modalForm.addEventListener("keypress", (event) => {
+    if (event.key === "Enter" && modalForm.value !== "") {
+      closeModal();
+    }
+  });
+
+  //5. Отлеживание событий на модальном окне
   document.body.addEventListener("click", (event) => {
     let target = event.target;
-    console.log(target);
 
-    //3. Кнопка 'OK'
+    //5.1 Кнопка 'OK'
+    if (target.closest(".modal_btn") && modalForm.value !== "") {
+      closeModal();
+    }
+
+    //5.2 Нажатие за пределами окна
+    if (target.closest(".overlay") && modalForm.value !== "") {
+      closeModal();
+    }
   });
+}
+
+//Сохранить результаты
+function saveResults(arr) {}
+
+//Закрытие модального окна
+function closeModal() {
+  //1. Сохранить результаты
+  saveResults(userName);
+
+  //2. Закрыть модальное окно
+  overlay.classList.remove("overlay");
+  modalWindow.classList.remove("modal");
+
+  overlay.classList.add("hidden");
+  modalWindow.classList.add("hidden");
+
+  //3. Привести к стартовому виду
+  makeDefault();
+}
+
+//------RESET-------
+//Сброс игры - нажатие на Reset
+function resetHandler() {
+  clearInterval(timerId); //остановка таймера
+  makeDefault();
+}
+
+//------ИНИЦИАТОРЫ-------
+//Отрисовка элементов
+function createElements() {
+  container.classList.add("container");
+  btnWrap.classList.add("btn_wrapper");
+  btnStart.classList.add("btn");
+  btnReset.classList.add("btn");
+  btnResults.classList.add("btn");
+  progress.classList.add("progress_wrapper");
+  anotherSizes.classList.add("sizes");
+
+  btnStart.textContent = "Shuffle and start";
+  btnReset.textContent = "Reset";
+  btnResults.textContent = "Results";
+
+  movesEl.textContent = "Moves: ";
+  numberOfMoves.textContent = "0";
+  timeEl.textContent = "Time: ";
+
+  currentSize.textContent = "Frame size: ";
+
+  btnStart.style.backgroundColor = "#0abab5";
+  btnResults.style.backgroundColor = "#0abab5";
+
+  timeEl.style.marginLeft = "15px";
+
+  currentSize.style.marginTop = "10px";
+  anotherSizes.style.marginTop = "10px";
+
+  btnWrap.append(btnStart);
+  btnWrap.append(btnReset);
+  btnWrap.append(btnResults);
+
+  progress.append(movesEl);
+  movesEl.append(numberOfMoves);
+  progress.append(timeEl);
+  timeEl.append(timeValue);
+
+  currentSize.append(sizeValue);
+
+  document.body.prepend(container);
+  container.append(btnWrap);
+  container.append(progress);
+  createField();
+  container.append(currentSize);
+  container.append(anotherSizes);
+
+  //TODO - delete
+  document.body.prepend(showModal);
+}
+
+//Вид  и параметры игры по умолчанию
+function makeDefault() {
+  dimension = 4; //размерность
+  count = 0; //кол-во ходов
+  startView = startArr(dimension); //стартовый набор карточек
+  mainMatrix = setMatrix(startView); //начальная матрица элементов
+  sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
+
+  //Сброс таймера
+  hours = 0;
+  minutes = 0;
+  seconds = 0;
+
+  numberOfMoves.textContent = "0";
+  sizeValue.textContent = `${dimension} х ${dimension}`;
+  timeValue.textContent = "00 : 00 : 00";
+  btnReset.style.backgroundColor = "gray";
+
+  createBars(mainMatrix);
+  createSizes(sizesArr);
+
+  anotherSizes.addEventListener("click", sizesHandler);
+  btnStart.addEventListener("click", startHandler);
+  gameField.removeEventListener("click", gameHandler);
+  btnReset.addEventListener("click", resetHandler);
 }
 
 //Инициатор
 function init() {
   createElements();
+  makeDefault();
 }
