@@ -45,6 +45,10 @@
       outline: gray solid 1px;
       background-color: #fff;
       cursor: pointer;
+
+      .empty {
+        display: none;
+      }
     }
   }
 

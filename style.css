@@ -45,6 +45,9 @@
   background-color: #fff;
   cursor: pointer;
 }
+.container .game-field .bar .empty {
+  display: none;
+}
 .container .sizes {
   display: flex;
 }

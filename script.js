@@ -1,12 +1,9 @@
 const container = document.createElement("DIV");
 
-//АУДИО
-const audioEl = document.createElement("audio");
-
 //КНОПКИ
 const btnWrap = document.createElement("DIV");
 const btnStart = document.createElement("button");
-const btnStop = document.createElement("button");
+const btnReset = document.createElement("button");
 const btnResults = document.createElement("button");
 
 //ХОДЫ И ВРЕМЯ
@@ -52,7 +49,7 @@ let count = 0; //кол-во ходов
 let startView = startArr(dimension); //стартовый набор карточек
 let mainMatrix = setMatrix(startView); //начальная матрица элементов
 
-let sizesArr = [3, 4, 5, 6, 7, 8]; //доступные размеры полей
+let sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
 //Настройки игрового поля
 function createField() {
@@ -175,16 +172,25 @@ function createBars(matrix) {
     for (let x = 0; x < currentMatrix[y].length; x++) {
       const bar = document.createElement("div");
 
+      bar.classList.add("bar");
+
+      bar.style.width = gameField.offsetWidth / dimension + "px";
+      bar.style.height = gameField.offsetWidth / dimension + "px";
+
       if (currentMatrix[y][x] === dimension * dimension) {
         //задать конечному элементу цвет шрифта = цвету поля
         //скрываем его
-        bar.style.color = "#0abab5";
-        bar.style.backgroundColor = "#0abab5";
-      }
+        const empty = document.createElement("span");
 
-      bar.classList.add("bar");
-      bar.style.width = gameField.offsetWidth / dimension + "px";
-      bar.style.height = gameField.offsetWidth / dimension + "px";
+        empty.textContent = `${currentMatrix[y][x]}`;
+        empty.classList.add("empty");
+
+        bar.append(empty);
+        bar.style.backgroundColor = "#0abab5";
+
+        gameField.append(bar);
+        continue;
+      }
 
       bar.textContent = `${currentMatrix[y][x]}`;
 
@@ -283,7 +289,7 @@ function isWin() {
   let startArr = [].concat(startView);
   let newArr = mainMatrix.flat(Infinity);
 
-  return startArr === newArr;
+  return startArr.join("") === newArr.join("");
 }
 
 //Воспроизведение аудио
@@ -311,7 +317,7 @@ function startHandler() {
   setInterval(timer, 1000); //TimerId = 1
 
   //4. Сделать кнопку Stop активной
-  btnStop.style.backgroundColor = "#ff8c69";
+  btnReset.style.backgroundColor = "#ff8c69";
 
   //5. Сделать кнопку Start неактивной
   btnStart.removeEventListener("click", startHandler);
@@ -348,36 +354,38 @@ function startHandler() {
       const winner = isWin();
 
       if (winner) {
-        //Останавливаем таймер
-        clearInterval(1);
-        //Показываем модалку
-        makeModal();
+        setTimeout(function () {
+          //Останавливаем таймер
+          clearInterval(1);
+          //Показываем модалку
+          makeModal();
+        }, 1000);
       }
     }
   });
 }
 
 //Остановка игры - нажатие на Stop
-function stopHandler() {
+function resetHandler() {
   clearInterval(1); //остановка таймера
 }
 
 anotherSizes.addEventListener("click", sizesHandler);
 btnStart.addEventListener("click", startHandler);
-btnStop.addEventListener("click", stopHandler);
+btnReset.addEventListener("click", resetHandler);
 
 //Отрисовка элементов при загрузе
 function createElements() {
   container.classList.add("container");
   btnWrap.classList.add("btn_wrapper");
   btnStart.classList.add("btn");
-  btnStop.classList.add("btn");
+  btnReset.classList.add("btn");
   btnResults.classList.add("btn");
   progress.classList.add("progress_wrapper");
   anotherSizes.classList.add("sizes");
 
   btnStart.textContent = "Shuffle and start";
-  btnStop.textContent = "Stop";
+  btnReset.textContent = "Reset";
   btnResults.textContent = "Results";
 
   movesEl.textContent = "Moves: ";
@@ -389,7 +397,7 @@ function createElements() {
   sizeValue.textContent = `${dimension} х ${dimension}`;
 
   btnStart.style.backgroundColor = "#0abab5";
-  btnStop.style.backgroundColor = "gray";
+  btnReset.style.backgroundColor = "gray";
   btnResults.style.backgroundColor = "#0abab5";
 
   timeEl.style.marginLeft = "15px";
@@ -398,11 +406,10 @@ function createElements() {
   anotherSizes.style.marginTop = "10px";
 
   document.body.prepend(container);
-  document.body.prepend(audioEl);
 
   container.append(btnWrap);
   btnWrap.append(btnStart);
-  btnWrap.append(btnStop);
+  btnWrap.append(btnReset);
   btnWrap.append(btnResults);
 
   container.append(progress);
@@ -427,7 +434,7 @@ function createElements() {
 
 //Отрисовка модального окна
 function makeModal() {
-  //Модальное окно
+  //1. Отрисовка элементов модального окна
 
   modalImg.setAttribute("src", "src/win_img.png");
   winText.textContent = `Hooray! You solved the puzzle in ${
@@ -438,8 +445,6 @@ function makeModal() {
   nameText.textContent = "Please, enter your name!";
   modalBtn.textContent = "Ok";
 
-  overlay.classList.add("overlay");
-  modalWindow.classList.add("modal");
   winText.classList.add("modal_win");
   nameText.classList.add("modal_user");
   modalForm.classList.add("modal_form");
@@ -454,7 +459,20 @@ function makeModal() {
   document.body.prepend(overlay);
   document.body.prepend(modalWindow);
 
+  overlay.classList.add("overlay");
+  modalWindow.classList.add("modal");
+
+  //2. Проигрыш фанфар
   playSound("win");
+
+  //3. Отлеживание событий
+
+  document.body.addEventListener("click", (event) => {
+    let target = event.target;
+    console.log(target);
+
+    //3. Кнопка 'OK'
+  });
 }
 
 //Инициатор
