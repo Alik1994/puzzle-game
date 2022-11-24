@@ -29,14 +29,6 @@ const modalResults = document.createElement("div");
 const resultsTitle = document.createElement("h2");
 const resultsTable = document.createElement("table");
 
-//TODO - delete later
-const showModal = document.createElement("button");
-showModal.textContent = "show modal";
-showModal.addEventListener("click", () => {
-  clearInterval(timerId);
-  makeModal();
-});
-
 //ИГРОВОЕ ПОЛЕ
 const gameField = document.createElement("div");
 
@@ -223,10 +215,14 @@ function sizesHandler(event) {
 
   if (target.className === "size") {
     dimension = Number(target.dataset.sizeValue);
+    currentSize.dataset.dim = `${dimension}`;
     startView = startArr(dimension);
     mainMatrix = setMatrix(startView);
     sizeValue.textContent = `${dimension} х ${dimension}`;
     createBars(mainMatrix);
+
+    //Очистка localStorage
+    localStorage.clear();
   }
 }
 
@@ -405,7 +401,6 @@ function makeModal() {
   modalWindow.append(modalForm);
   modalWindow.append(modalBtn);
 
-  document.body.prepend(overlay);
   document.body.prepend(modalWindow);
 
   overlay.classList.remove("hidden");
@@ -424,7 +419,7 @@ function makeModal() {
   modalForm.addEventListener("keypress", keyHandler); // (**)
 
   //5. Отлеживаем события на модальном окне
-  document.body.addEventListener("click", windowHandler); // (***)
+  document.body.addEventListener("click", windowWinner); // (***)
 }
 
 //(*) - Обработчик поля ввода
@@ -464,19 +459,19 @@ function keyHandler(event) {
 }
 
 //(***) - Глобальный обработчик
-function windowHandler(event) {
+function windowWinner(event) {
   let target = event.target;
 
   //1. Кнопка 'OK'
   if (target.closest(".modal_btn") && modalForm.value !== "") {
     closeModal();
-    document.body.removeEventListener("click", windowHandler);
+    document.body.removeEventListener("click", windowWinner);
   }
 
   //2. Нажатие за пределами окна
   if (target.closest(".overlay") && modalForm.value !== "") {
     closeModal();
-    document.body.removeEventListener("click", windowHandler);
+    document.body.removeEventListener("click", windowWinner);
   }
 }
 
@@ -509,14 +504,16 @@ function closeModal() {
   modalWindow.classList.add("hidden");
 
   //3. Привести к стартовому виду
-  makeDefault();
+  let currentDimension = Number(currentSize.dataset.dim);
+  makeDefault(currentDimension);
 }
 
 //------RESET-------
 //Сброс игры - нажатие на Reset
 function resetHandler() {
   clearInterval(timerId); //остановка таймера
-  makeDefault();
+  let currentDimension = Number(currentSize.dataset.dim);
+  makeDefault(currentDimension);
 }
 
 //------RESULTS-------
@@ -527,13 +524,139 @@ function resultHandler() {
 }
 
 function showResults() {
-  //1. Отрисовка элементов
-  resultsTitle.textContent = "Top 10";
+  //1. Получаем результаты
+  let results = makeResults();
+
+  //2. Сортируем по возрастанию
+  //Определяющий фактор - время прохождения (time)
+  //Больше время -> ниже в таблице
+  //Если время одинаковое, сортируем по кол-ву ходов (moves)
+  results.sort((a, b) =>
+    a.time === b.time ? a.moves - b.moves : a.time - b.time
+  );
+
+  //3. Обрезаем массив до 10 значений
+  results = results.slice(0, 10);
+
+  //4. Заполняем рисуем
+  createModalResults(results);
+
+  //5. Вешаем обработчик
+  document.body.addEventListener("click", windowResults);
+}
+
+//Собираем результаты победы
+function makeResults() {
+  //Из каждого результаты делаем объект каждый объект в массив
+  let arrOfResults = [];
+
+  //Перебор localStorage
+  for (let key in localStorage) {
+    if (!localStorage.hasOwnProperty(key)) {
+      continue;
+    }
+
+    //Запись данных в объект
+    let obj = {};
+    obj.name = key;
+    obj.moves = JSON.parse(localStorage.getItem(key))[0];
+    obj.time = JSON.parse(localStorage.getItem(key))[1];
+
+    //Добавление объекта в массив
+    arrOfResults.push(obj);
+  }
+
+  return arrOfResults;
+}
+
+//Отрисовка результатов победы
+function createModalResults(arr) {
+  //Содержимое заголовка
+  resultsTitle.textContent = `Top 10 winners for current size`;
+  modalResults.append(resultsTitle);
+
+  //Очищаем таблицу от предыдущих значений
+  resultsTable.innerHTML = "";
+
+  //Заполняем строку заголовков
+  const titleRow = document.createElement("tr");
+  const titleUser = document.createElement("th"); //заголовок имени
+  const titleMoves = document.createElement("th"); //заголовок ходов
+  const titleTime = document.createElement("th"); //заголовок времени
+
+  titleUser.textContent = "User";
+  titleMoves.textContent = "Score";
+  titleTime.textContent = "Time";
+
+  titleRow.append(titleUser);
+  titleRow.append(titleMoves);
+  titleRow.append(titleTime);
+  resultsTable.append(titleRow);
+
+  //Заполняем остальное содержимое таблицы
+  let results = arr;
+
+  for (let i = 0; i < results.length; i++) {
+    let row = document.createElement("tr");
+    let name = document.createElement("td");
+    let score = document.createElement("td");
+
+    //Время
+    let timeEl = document.createElement("td");
+    let time = results[i].time;
+    let h = Math.trunc(time / 3600);
+    let m = Math.trunc((time - h * 3600) / 60);
+    let sec = Math.trunc(time - h * 3600 - m * 60);
+
+    name.textContent = `${results[i].name}`;
+    score.textContent = `${results[i].moves}`;
+    timeEl.textContent = `${h < 10 ? "0" + h : h} : ${m < 10 ? "0" + m : m} : ${
+      sec < 10 ? "0" + sec : sec
+    }`;
+
+    row.append(name);
+    row.append(score);
+    row.append(timeEl);
+
+    resultsTable.append(row);
+  }
+
+  modalResults.append(resultsTable);
+  document.body.append(modalResults);
+
+  //Удаляем скрытие
+  modalResults.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+
+  //Добавляем классы
+  overlay.classList.add("overlay");
+  modalResults.classList.add("modal_results");
+  resultsTitle.classList.add("results_title");
+  resultsTable.classList.add("results_table");
+}
+
+//Глобальный обработчик окна с результатами
+function windowResults(event) {
+  let target = event.target;
+  if (target.closest(".modal_results") || target.closest(".overlay")) {
+    modalResults.classList.remove("modal_results");
+    overlay.classList.remove("overlay");
+
+    modalResults.classList.add("hidden");
+    overlay.classList.add("hidden");
+
+    //Удалить обработчик
+    document.body.removeEventListener("click", windowResults);
+
+    //Очистить содержимое
+    modalResults.innerHTML = "";
+  }
 }
 
 //------ИНИЦИАТОРЫ-------
 //Отрисовка элементов
 function createElements() {
+  document.body.prepend(overlay);
   container.classList.add("container");
   btnWrap.classList.add("btn_wrapper");
   btnStart.classList.add("btn");
@@ -577,16 +700,13 @@ function createElements() {
   createField();
   container.append(currentSize);
   container.append(anotherSizes);
-
-  //TODO - delete
-  document.body.prepend(showModal);
 }
 
 //Вид  и параметры игры по умолчанию
-function makeDefault() {
+function makeDefault(dim) {
   //1. Назначаем параметры по умолчанию
-
-  dimension = 4; //размерность
+  currentSize.dataset.dim = `${dim}`;
+  dimension = dim; //размерность
   count = 0; //кол-во ходов
   startView = startArr(dimension); //стартовый набор карточек
   mainMatrix = setMatrix(startView); //начальная матрица элементов
@@ -620,5 +740,5 @@ function makeDefault() {
 //Инициатор
 function init() {
   createElements();
-  makeDefault();
+  makeDefault(4);
 }
