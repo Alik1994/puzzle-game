@@ -710,7 +710,7 @@ function makeDefault(dim) {
   count = 0; //кол-во ходов
   startView = startArr(dimension); //стартовый набор карточек
   mainMatrix = setMatrix(startView); //начальная матрица элементов
-  sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
+  sizesArr = [3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
   //Сброс таймера
   clearInterval(timerId);
