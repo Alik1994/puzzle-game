@@ -24,10 +24,16 @@ const nameText = document.createElement("p");
 const modalForm = document.createElement("input");
 const modalBtn = document.createElement("button");
 
+//МОДАЛЬНОЕ ОКНО (РЕЗУЛЬТАТЫ)
+const modalResults = document.createElement("div");
+const resultsTitle = document.createElement("h2");
+const resultsTable = document.createElement("table");
+
 //TODO - delete later
 const showModal = document.createElement("button");
 showModal.textContent = "show modal";
 showModal.addEventListener("click", () => {
+  clearInterval(timerId);
   makeModal();
 });
 
@@ -251,6 +257,9 @@ function startHandler() {
 
   //6. Навесить событие на игровое поле
   gameField.addEventListener("click", gameHandler);
+
+  //7. Удалить обработчик с кнопки Results
+  btnResults.removeEventListener("click", resultHandler);
 }
 
 //Функция-таймер
@@ -348,9 +357,11 @@ function gameHandler(event) {
     const winner = isWin();
 
     if (winner) {
+      //Останавливаем таймер
+      clearInterval(timerId);
+
+      //Открываем модалку
       setTimeout(function () {
-        //Останавливаем таймер
-        clearInterval(timerId);
         //Показываем модалку
         makeModal();
       }, 1000);
@@ -471,10 +482,19 @@ function windowHandler(event) {
 
 //Сохранить результаты
 function saveResults() {
+  //1. Сохраняем текущее имя пользователя
   userName = modalForm.value;
-  let obj = {};
-  obj.name = userName;
-  console.log(obj);
+
+  //2. Создаем объект с данными ходов и времени
+  let userArray = [];
+  let moves = count; //кол-во ходов
+  let time = hours * 60 + minutes * 60 + seconds; //время сохраняем в секундах для удобства
+
+  //3. Сохраняем данные в массив
+  userArray = [moves, time];
+
+  //4. Записываем данные в localStorage
+  localStorage.setItem(userName, JSON.stringify(userArray));
 }
 
 //Закрытие модального окна
@@ -497,6 +517,18 @@ function closeModal() {
 function resetHandler() {
   clearInterval(timerId); //остановка таймера
   makeDefault();
+}
+
+//------RESULTS-------
+btnResults.addEventListener("click", resultHandler);
+
+function resultHandler() {
+  showResults();
+}
+
+function showResults() {
+  //1. Отрисовка элементов
+  resultsTitle.textContent = "Top 10";
 }
 
 //------ИНИЦИАТОРЫ-------
@@ -552,6 +584,8 @@ function createElements() {
 
 //Вид  и параметры игры по умолчанию
 function makeDefault() {
+  //1. Назначаем параметры по умолчанию
+
   dimension = 4; //размерность
   count = 0; //кол-во ходов
   startView = startArr(dimension); //стартовый набор карточек
@@ -559,6 +593,9 @@ function makeDefault() {
   sizesArr = [2, 3, 4, 5, 6, 7, 8]; //доступные размеры полей
 
   //Сброс таймера
+  clearInterval(timerId);
+
+  //Обнуляем значения таймера
   hours = 0;
   minutes = 0;
   seconds = 0;
@@ -568,13 +605,16 @@ function makeDefault() {
   timeValue.textContent = "00 : 00 : 00";
   btnReset.style.backgroundColor = "gray";
 
+  //2. Заново отрисовываем игровое поле
   createBars(mainMatrix);
   createSizes(sizesArr);
 
+  //3. Добавляем/удаляем обработчики
   anotherSizes.addEventListener("click", sizesHandler);
   btnStart.addEventListener("click", startHandler);
   gameField.removeEventListener("click", gameHandler);
   btnReset.addEventListener("click", resetHandler);
+  btnResults.addEventListener("click", resultHandler);
 }
 
 //Инициатор
