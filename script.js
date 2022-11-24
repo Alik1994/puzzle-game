@@ -369,11 +369,10 @@ function isWin() {
 }
 
 //Модальное окно
-let userName = [];
+let userName;
 
 function makeModal() {
   //1. Отрисовка элементов модального окна
-  userName = []; //имя игровка
   modalImg.setAttribute("src", "src/win_img.png");
   winText.textContent = `Hooray! You solved the puzzle in ${
     hours < 10 ? "0" + hours : hours
@@ -407,65 +406,81 @@ function makeModal() {
   //2. Проигрыш фанфар
   playSound("win");
 
-  //3. Обработчик на поле ввода.
-  //Ограничиваем на 7 знаков
-  //Без цифр
-  modalForm.addEventListener("input", () => {
-    let value = modalForm.value;
-    const regexp = /[a-z]/i;
-
-    //3.1 Проверяем, чтобы вводились только буквы
-    for (let i = 0; i < value.length; i++) {
-      if (!regexp.test(value[i])) {
-        //Окрасить поле в красный
-        modalForm.style.borderColor = "red";
-        //Заменить енправильный символ на пустую строку
-        value = value.replace(value[i], "");
-      } else {
-        modalForm.style.borderColor = "#0abab5";
-      }
-    }
-
-    //3.2 Ограничиваем кол-во символов
-    if (value.length > 7) {
-      value = value.slice(0, 7);
-    }
-
-    //3.3 Показываем итог
-    modalForm.value = value;
-  });
+  //3. Отслеживаем поле ввода.
+  modalForm.addEventListener("input", inputHandler); // (*)
 
   //4. Отслеживаем кнопку Enter на поле ввода
-  modalForm.addEventListener("keypress", (event) => {
-    if (event.key === "Enter" && modalForm.value !== "") {
-      closeModal();
-    }
-  });
+  modalForm.addEventListener("keypress", keyHandler); // (**)
 
-  //5. Отлеживание событий на модальном окне
-  document.body.addEventListener("click", (event) => {
-    let target = event.target;
+  //5. Отлеживаем события на модальном окне
+  document.body.addEventListener("click", windowHandler); // (***)
+}
 
-    //5.1 Кнопка 'OK'
-    if (target.closest(".modal_btn") && modalForm.value !== "") {
-      closeModal();
-    }
+//(*) - Обработчик поля ввода
+function inputHandler() {
+  //Ограничиваем на 7 знаков
+  //Без цифр
+  let value = modalForm.value;
+  const regexp = /[a-z]/i;
 
-    //5.2 Нажатие за пределами окна
-    if (target.closest(".overlay") && modalForm.value !== "") {
-      closeModal();
+  //1. Проверяем, чтобы вводились только буквы
+  for (let i = 0; i < value.length; i++) {
+    if (!regexp.test(value[i])) {
+      //Окрасить поле в красный
+      modalForm.style.borderColor = "red";
+      //Заменить енправильный символ на пустую строку
+      value = value.replace(value[i], "");
+    } else {
+      modalForm.style.borderColor = "#0abab5";
     }
-  });
+  }
+
+  //2. Ограничиваем кол-во символов
+  if (value.length > 7) {
+    value = value.slice(0, 7);
+  }
+
+  //3. Показываем итог
+  modalForm.value = value;
+}
+
+//(**) - Обработчик клавиатуры
+function keyHandler(event) {
+  if (event.key === "Enter" && modalForm.value !== "") {
+    closeModal();
+    modalForm.removeEventListener("keypress", keyHandler);
+  }
+}
+
+//(***) - Глобальный обработчик
+function windowHandler(event) {
+  let target = event.target;
+
+  //1. Кнопка 'OK'
+  if (target.closest(".modal_btn") && modalForm.value !== "") {
+    closeModal();
+    document.body.removeEventListener("click", windowHandler);
+  }
+
+  //2. Нажатие за пределами окна
+  if (target.closest(".overlay") && modalForm.value !== "") {
+    closeModal();
+    document.body.removeEventListener("click", windowHandler);
+  }
 }
 
 //Сохранить результаты
-function saveResults(arr) {}
+function saveResults() {
+  userName = modalForm.value;
+  let obj = {};
+  obj.name = userName;
+  console.log(obj);
+}
 
 //Закрытие модального окна
 function closeModal() {
   //1. Сохранить результаты
-  saveResults(userName);
-
+  saveResults();
   //2. Закрыть модальное окно
   overlay.classList.remove("overlay");
   modalWindow.classList.remove("modal");
