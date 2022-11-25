@@ -125,6 +125,7 @@
 }
 .modal_results .results_title {
   padding: 0;
+  text-align: center;
   font-weight: bold;
   margin-bottom: 15px;
 }
