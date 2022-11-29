@@ -1,3 +1,5 @@
+//МОДУЛИ
+
 const container = document.createElement("DIV");
 
 //КНОПКИ
@@ -5,6 +7,8 @@ const btnWrap = document.createElement("DIV");
 const btnStart = document.createElement("button");
 const btnReset = document.createElement("button");
 const btnResults = document.createElement("button");
+const btnMute = document.createElement("button");
+const muteIcon = document.createElement("img");
 
 //ХОДЫ И ВРЕМЯ
 const progress = document.createElement("div");
@@ -225,6 +229,12 @@ function sizesHandler(event) {
     localStorage.clear();
   }
 }
+//------MUTE-------
+function muteHandler() {
+  btnMute.classList.toggle("isMute");
+}
+
+btnMute.addEventListener("click", muteHandler);
 
 //------START-------
 
@@ -316,6 +326,10 @@ function swapBars(coords1, coords2, matrix) {
 
 //Воспроизведение аудио
 function playSound(sound) {
+  if (btnMute.classList.contains("isMute")) {
+    return;
+  }
+
   let audio = new Audio();
   audio.src = `src/${sound}.mp3`;
   audio.autoplay = true;
@@ -662,6 +676,7 @@ function createElements() {
   btnStart.classList.add("btn");
   btnReset.classList.add("btn");
   btnResults.classList.add("btn");
+  btnMute.classList.add("muteBtn");
   progress.classList.add("progress_wrapper");
   anotherSizes.classList.add("sizes");
 
@@ -677,6 +692,7 @@ function createElements() {
 
   btnStart.style.backgroundColor = "#0abab5";
   btnResults.style.backgroundColor = "#0abab5";
+  muteIcon.setAttribute("src", "src/mute-icon.png");
 
   timeEl.style.marginLeft = "15px";
 
@@ -686,6 +702,7 @@ function createElements() {
   btnWrap.append(btnStart);
   btnWrap.append(btnReset);
   btnWrap.append(btnResults);
+  btnMute.append(muteIcon);
 
   progress.append(movesEl);
   movesEl.append(numberOfMoves);
@@ -695,6 +712,7 @@ function createElements() {
   currentSize.append(sizeValue);
 
   document.body.prepend(container);
+  container.append(btnMute);
   container.append(btnWrap);
   container.append(progress);
   createField();
