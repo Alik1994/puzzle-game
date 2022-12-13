@@ -5,7 +5,7 @@
 ---
 
 1. [How to play?](#how-to-play)
-2. [Functionality description](#funcionality-description)
+2. [Functionality description](#functionality-description)
 3. [How to improve](#how-to-improve)
 
 ---
