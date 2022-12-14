@@ -7,7 +7,7 @@ function playSound(sound) {
   }
 
   let audio = new Audio();
-  audio.src = `https://alik1994.github.io/src/${sound}.mp3`;
+  audio.src = `https://github.com/Alik1994/puzzle-game/blob/main/src/${sound}.mp3`;
   audio.autoplay = true;
 }
 
