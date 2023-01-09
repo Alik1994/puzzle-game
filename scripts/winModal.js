@@ -14,7 +14,7 @@ let userName;
 
 function makeModal() {
   //1. Отрисовка элементов модального окна
-  modalImg.setAttribute("src", "src/win_img.png");
+  modalImg.setAttribute("src", "win_img.png");
   winText.textContent = `Hooray! You solved the puzzle in ${
     hours < 10 ? "0" + hours : hours
   } : ${minutes < 10 ? "0" + minutes : minutes} : ${

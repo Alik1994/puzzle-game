@@ -105,7 +105,7 @@ function createElements() {
 
   btnStart.style.backgroundColor = "#0abab5";
   btnResults.style.backgroundColor = "#0abab5";
-  muteIcon.setAttribute("src", "src/mute-icon.png");
+  muteIcon.setAttribute("src", "mute-icon.png");
 
   timeEl.style.marginLeft = "15px";
 

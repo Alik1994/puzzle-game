@@ -7,7 +7,7 @@ function playSound(sound) {
   }
 
   let audio = new Audio();
-  audio.src = `../src/${sound}.mp3`;
+  audio.src = `${sound}.mp3`;
   audio.autoplay = true;
 }
 

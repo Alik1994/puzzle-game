@@ -1,7 +1,6 @@
 const path = require("path");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   entry: "./scripts/main.js",
@@ -17,17 +16,8 @@ module.exports = {
         type: "asset/resource",
       },
       {
-        test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, "style-loader", "css-loader"],
-      },
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          MiniCssExtractPlugin.loader,
-          "style-loader",
-          "css-loader",
-          "sass-loader",
-        ],
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
       },
     ],
   },
@@ -35,11 +25,9 @@ module.exports = {
     new HTMLWebpackPlugin({
       template: "./index.html",
     }),
-    new MiniCssExtractPlugin({
-      filename: "[name].[contenthash].css",
-    }),
     new CopyPlugin({
       patterns: [{ from: "./src" }],
     }),
   ],
+  mode: "development",
 };
