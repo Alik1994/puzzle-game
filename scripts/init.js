@@ -1,5 +1,5 @@
 import { startArr } from "./startArr.js";
-import { setMatrix, generateRandom } from "./setMatrix.js";
+import { setMatrix } from "./setMatrix.js";
 import { timerId, resetTimer } from "./timer.js";
 import { createBars } from "./createBars.js";
 import { createSizes, sizesHandler } from "./createSizes.js";
@@ -49,8 +49,6 @@ let sizesArr; //доступные размеры полей
 
 //Переназначение матрицы
 function newMatrix(arg) {
-  //mainMatrix = setMatrix(generateRandom(dimension));
-
   mainMatrix = setMatrix(arg);
 
   return mainMatrix;
@@ -105,7 +103,7 @@ function createElements() {
 
   btnStart.style.backgroundColor = "#0abab5";
   btnResults.style.backgroundColor = "#0abab5";
-  muteIcon.setAttribute("src", "mute-icon.png");
+  muteIcon.setAttribute("src", "src/mute-icon.png");
 
   timeEl.style.marginLeft = "15px";
 

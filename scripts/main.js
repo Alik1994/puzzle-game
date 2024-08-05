@@ -1,5 +1,5 @@
-import { createElements, makeDefault } from "./init.js";
 import "../style.scss";
+import { createElements, makeDefault } from "./init.js";
 
 window.addEventListener("load", init);
 

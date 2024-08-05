@@ -9,7 +9,6 @@ import {
   startView,
   mainMatrix,
 } from "./init.js";
-import { setMatrix } from "./setMatrix.js";
 import { createBars } from "./createBars.js";
 
 //Создание иных размеров
